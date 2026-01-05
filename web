@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annual Leave Balance Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 24px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .result-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .final-balance {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .final-balance-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .final-balance-value {
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .final-balance-subtext {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .error {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Annual Leave Balance Calculator</h1>
+        <p class="subtitle">Calculate your projected annual leave balance</p>
+
+        <form id="leaveForm">
+            <div class="form-group">
+                <label for="currentBalance">Current Leave Balance (hours)</label>
+                <input type="number" id="currentBalance" step="0.01" required>
+                <div class="helper-text">As shown on your most recent payslip</div>
+            </div>
+
+            <div class="form-group">
+                <label for="payslipDate">Payslip Date</label>
+                <input type="date" id="payslipDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="targetDate">Calculate Balance As At</label>
+                <input type="date" id="targetDate" required>
+                <div class="helper-text">Defaults to today</div>
+            </div>
+
+            <div class="form-group">
+                <label for="hoursPerFortnight">Hours Worked Per Fortnight</label>
+                <input type="number" id="hoursPerFortnight" value="75" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="annualLeaveWeeks">Annual Leave Entitlement (weeks)</label>
+                <input type="number" id="annualLeaveWeeks" value="4" step="0.01" required>
+                <div class="helper-text">Standard entitlement is 4 weeks</div>
+            </div>
+
+            <div class="form-group">
+                <label for="leaveTaken">Leave Taken Since Payslip (hours)</label>
+                <input type="number" id="leaveTaken" value="0" step="0.01" required>
+                <div class="helper-text">Any leave used between payslip date and target date</div>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <button type="submit">Calculate Balance</button>
+        </form>
+
+        <div class="results" id="results">
+            <h2>Calculation Breakdown</h2>
+            
+            <div class="result-row">
+                <span class="result-label">Starting Balance</span>
+                <span class="result-value" id="startBalance"></span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Time Period</span>
+                <span class="result-value" id="timePeriod"></span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Fortnights Elapsed</span>
+                <span class="result-value" id="fortnightsElapsed"></span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Accrual Rate</span>
+                <span class="result-value" id="accrualRate"></span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Leave Accrued</span>
+                <span class="result-value" id="leaveAccrued"></span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Leave Taken</span>
+                <span class="result-value" id="leaveTakenDisplay"></span>
+            </div>
+
+            <div class="final-balance">
+                <div class="final-balance-label">Projected Balance</div>
+                <div class="final-balance-value" id="finalBalance"></div>
+                <div class="final-balance-subtext" id="finalBalanceWeeks"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set default target date to today
+        document.getElementById('targetDate').valueAsDate = new Date();
+
+        document.getElementById('leaveForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Clear previous error
+            const errorDiv = document.getElementById('error');
+            errorDiv.classList.remove('show');
+            
+            // Get form values
+            const currentBalance = parseFloat(document.getElementById('currentBalance').value);
+            const payslipDate = new Date(document.getElementById('payslipDate').value);
+            const targetDate = new Date(document.getElementById('targetDate').value);
+            const hoursPerFortnight = parseFloat(document.getElementById('hoursPerFortnight').value);
+            const annualLeaveWeeks = parseFloat(document.getElementById('annualLeaveWeeks').value);
+            const leaveTaken = parseFloat(document.getElementById('leaveTaken').value);
+            
+            // Validation
+            if (targetDate < payslipDate) {
+                errorDiv.textContent = 'Target date cannot be before payslip date';
+                errorDiv.classList.add('show');
+                return;
+            }
+            
+            // Calculate annual entitlement in hours
+            const annualEntitlementHours = (annualLeaveWeeks * hoursPerFortnight) / 2;
+            
+            // Calculate accrual per fortnight
+            const accrualPerFortnight = annualEntitlementHours / 26;
+            
+            // Calculate days between dates
+            const daysDifference = Math.floor((targetDate - payslipDate) / (1000 * 60 * 60 * 24));
+            
+            // Calculate fortnights (including partial)
+            const fortnightsElapsed = daysDifference / 14;
+            
+            // Calculate accrued leave
+            const leaveAccrued = fortnightsElapsed * accrualPerFortnight;
+            
+            // Calculate final balance
+            const finalBalance = currentBalance + leaveAccrued - leaveTaken;
+            
+            // Calculate balance in working days (7.5 hours per day)
+            const balanceInDays = finalBalance / 7.5;
+            
+            // Display results
+            document.getElementById('startBalance').textContent = `${currentBalance.toFixed(2)} hours`;
+            
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('timePeriod').textContent = 
+                `${payslipDate.toLocaleDateString('en-NZ', options)} to ${targetDate.toLocaleDateString('en-NZ', options)}`;
+            
+            document.getElementById('fortnightsElapsed').textContent = 
+                `${fortnightsElapsed.toFixed(2)} fortnights (${daysDifference} days)`;
+            
+            document.getElementById('accrualRate').textContent = 
+                `${accrualPerFortnight.toFixed(2)} hours/fortnight`;
+            
+            document.getElementById('leaveAccrued').textContent = 
+                `${leaveAccrued.toFixed(2)} hours`;
+            
+            document.getElementById('leaveTakenDisplay').textContent = 
+                `${leaveTaken.toFixed(2)} hours`;
+            
+            document.getElementById('finalBalance').textContent = 
+                `${finalBalance.toFixed(2)} hours`;
+            
+            document.getElementById('finalBalanceWeeks').textContent = 
+                `Equivalent to ${balanceInDays.toFixed(2)} working days`;
+            
+            // Show results with animation
+            document.getElementById('results').classList.add('show');
+            
+            // Smooth scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    </script>
+</body>
+</html>
